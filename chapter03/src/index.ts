@@ -6,6 +6,22 @@ const app = express();
 const PORT = process.env.PORT ?? 8080;
 const redis = new Redis();
 
+app.use(async function(req,res,next) {
+    const key = 'rate-limit';
+    const value = await redis.get(key);
+
+    if(value === null){
+        await redis.set(key,0);
+        await redis.expire(key,60);
+    }
+    
+    if(Number(value) > 10){
+        return res.status(429).json({message:"Too many requests"});
+    }
+
+    await redis.incr(key);
+    next();
+})
 
 app.get('/',(req,res)=>{
     return res.json({status:'success'});
