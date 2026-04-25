@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socket</title>
+</head>
+<body>
+    <div id="checkbox-container">
+
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+
+        const checkboxes = new Array(100).fill(0);
+        const checkboxContainer = document.getElementById('checkbox-container');
+
+        async function stateUpdate(){
+            const resp = await fetch('/state',{
+                headers:{
+                    'Content-Type':'application/json'
+                }
+            })
+            const _json = await resp.json();
+            // console.log(_json);
+            if(_json.state){
+                _json.state.forEach((e,index)=>{
+                    const element  = document.getElementById(`index-${index}`);
+                    element.checked = e;
+                })
+            }
+        }
+
+        checkboxes.forEach((checkbox,i)=>{
+            const input = document.createElement('input');
+            input.setAttribute('type','checkbox');
+            input.id = `index-${i}`;
+            input.addEventListener('change',(e)=>{
+                socket.emit('checkbox-update',{index:i,value:input.checked});
+            });
+
+            checkboxContainer.append(input);
+        })
+        const socket = io(); // Connects to backend over web sockets
+
+        socket.on('checkbox-update',({index,value})=>{
+           stateUpdate();
+        })
+
+    
+        stateUpdate();
+    </script>
+</body>
+</html>
