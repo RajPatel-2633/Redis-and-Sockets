@@ -17,10 +17,11 @@ const subscriber = new ioredis_1.default({ host: 'localhost', port: Number(6379)
 const httpServer = http_1.default.createServer(app); // HTTP Server, we mounted Express Server on HTTP Server
 const io = new socket_io_1.Server(); // Socket Server
 io.attach(httpServer); // Now socket server is also running on HTTP Server;
+const stateKey = 'state1';
+redis.setnx(stateKey, JSON.stringify(new Array(100).fill(false)));
 subscriber.subscribe('server:broker');
 subscriber.on('message', (channel, message) => {
     const { event, data } = JSON.parse(message);
-    state[data.index] = data.value;
     io.emit(event, data); // This is known as relaying
 });
 io.on('connection', (socket) => {
@@ -34,6 +35,12 @@ io.on('connection', (socket) => {
         io.emit('server-message', msg); // Broadcast to all the connected clients;
     });
     socket.on('checkbox-update', async (data) => {
+        const state = await redis.get(stateKey); // This can be either string or null
+        if (state) {
+            const parsedState = JSON.parse(state);
+            parsedState[data.index] = data.value;
+            await redis.set(stateKey, JSON.stringify(parsedState));
+        }
         await publisher.publish('server:broker', JSON.stringify({ event: 'checkbox-update', data }));
         // state[data.index] = data.value;
         // io.emit('checkbox-update',data);
@@ -54,8 +61,13 @@ app.use(async function (req, res, next) {
     await redis.incr(key);
     next();
 });
-app.get('/state', (req, res) => {
-    return res.json({ state });
+app.get('/state', async (req, res) => {
+    const state = await redis.get(stateKey);
+    if (state) {
+        const parsedState = JSON.parse(state);
+        return res.json({ state: parsedState });
+    }
+    return res.json({ state: [] });
 });
 app.get('/', (req, res) => {
     return res.json({ status: 'success' });
