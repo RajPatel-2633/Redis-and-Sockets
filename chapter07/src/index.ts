@@ -29,7 +29,6 @@ redis.setnx(stateKey,JSON.stringify(new Array(100).fill(false)))
 subscriber.subscribe('server:broker');
 subscriber.on('message',(channel,message)=>{
     const {event,data} = JSON.parse(message);
-    state[data.index] = data.value;
     io.emit(event,data); // This is known as relaying
 })
 
