@@ -1,0 +1,19 @@
+{
+  "name": "chapter08",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch api.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.33.2",
+  "dependencies": {
+    "bullmq": "^5.76.2",
+    "ioredis": "^5.10.1",
+    "zod": "^4.3.6"
+  }
+}

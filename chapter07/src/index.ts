@@ -17,9 +17,6 @@ const subscriber = new Redis({host:'localhost',port:Number(6379)}); // This is f
 const httpServer = http.createServer(app); // HTTP Server, we mounted Express Server on HTTP Server
 const io = new Server(); // Socket Server
 
-
-
-
 io.attach(httpServer); // Now socket server is also running on HTTP Server;
 
 const stateKey = 'state1';
